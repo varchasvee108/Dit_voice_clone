@@ -44,13 +44,13 @@ def build_balanced_tts_speech(
         if len(audio_array) < min_duration * sampling_rate:
             continue
 
-        waveform = torch.from_numpy(audio_array).float()
+        waveform = torch.from_numpy(audio_array).float().unsqueeze(0)
 
-        max_val = waveform.abs().max()
-        if max_val > 0:
-            waveform = waveform / max_val
+        # max_val = waveform.abs().max()
+        # if max_val > 0:
+        #     waveform = waveform / max_val
 
-        waveform = waveform.unsqueeze(0)
+        # waveform = waveform.unsqueeze(0)
 
         spk_path = os.path.join(raw_dir, speaker_id)
         os.makedirs(spk_path, exist_ok=True)
@@ -77,5 +77,5 @@ def build_balanced_tts_speech(
 
 
 if __name__ == "__main__":
-    selected_speakers = ["19", "23", "24", "27", "30", "31", "32", "36", "37", "40"]
+    selected_speakers = ["1320", "1284", "3575", "1221"]
     build_balanced_tts_speech(selected_speakers)
