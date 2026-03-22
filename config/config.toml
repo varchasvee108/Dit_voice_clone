@@ -1,0 +1,34 @@
+[project]
+name = "Dit_Voice_Clone"
+seed = 1008
+output_dir = "./checkpoints"
+
+[data]
+train_dir = "data/latents"
+sample_rate = 16000
+hop_length= 256
+max_duration = 5.0  
+batch_size = 2
+
+[model]
+hidden_size = 384
+num_layers = 8
+num_heads = 4
+patch_size = 4
+latent_dim = 64
+text_emb_dim = 768
+speaker_emb_dim = 256
+
+[training]
+lr = 3e-4
+weight_decay = 0.1
+betas = [0.9, 0.95]
+total_steps = 50000
+grad_accum_factor = 32
+precision = "16-mixed"
+grad_clip = 1.0
+
+[diffusion]
+timesteps = 1000
+scheduler = 'linear'
+
