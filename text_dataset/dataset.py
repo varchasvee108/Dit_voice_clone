@@ -1,0 +1,37 @@
+from datasets import load_dataset
+from core.config import Config
+from torch.utils.data import Dataset
+from itertools import chain
+import torch
+
+
+class TextDataset(Dataset):
+    def __init__(self, config: Config, split="train"):
+
+        super().__init__()
+        self.config = config
+        self.block = config.data.block_size
+        dataset = load_dataset(config.data.dataset, split=split)
+
+        def tokenize_fn(example):
+            return config.data.tokenizer(example["text"])
+
+        tokenized_dataset = dataset.map(
+            tokenize_fn=tokenize_fn,
+            batched=True,
+            remove_columns=["text"],
+            desc="Tokenizing dataset...",
+        )
+
+        all_tokens = list(chain.from_iterable(tokenized_dataset["input_ids"]))
+
+        self.tokens = torch.tensor(all_tokens, dtype=torch.long)
+
+    def __len__(self):
+        return (len(self.tokens) - 1) // self.config.data.block_size
+
+    def __getitem__(self, idx):
+        start = idx * self.config.data.block_size
+        end = start + self.config.data.block_size + 1
+        chunk = self.tokens[start:end]
+        return chunk[:-1], chunk[1:]
