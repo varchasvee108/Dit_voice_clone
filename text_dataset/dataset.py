@@ -34,4 +34,4 @@ class TextDataset(Dataset):
         start = idx * self.config.data.block_size
         end = start + self.config.data.block_size + 1
         chunk = self.tokens[start:end]
-        return chunk[:-1], chunk[1:]
+        return chunk
