@@ -16,7 +16,7 @@ class DataConfig:
     block_size: int
     batch_size: int
     tokenizer: str
-    vocab_size: Optional[int] = None
+    vocab_size: int | None = None
 
 
 @dataclass
