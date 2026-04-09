@@ -8,6 +8,7 @@ dataset = 'roneneldan/tinystories'
 block_size = 256
 batch_size = 64
 tokenizer = 'gpt2'
+embd_dim = 256
 
 
 
