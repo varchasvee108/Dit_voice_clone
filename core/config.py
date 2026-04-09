@@ -16,6 +16,7 @@ class DataConfig:
     batch_size: int
     tokenizer: str
     vocab_size: int | None = None
+    embd_dim: int
 
 
 @dataclass
@@ -70,7 +71,7 @@ class Config:
             project=ProjectConfig(**data["project"]),
             data=DataConfig(**data["data"]),
             model=ModelConfig(**data["model"]),
-            trainign=TrainingConfig(
+            training=TrainingConfig(
                 **data["training"], betas=tuple(data["training"]["betas"])
             ),
             diffusion=DiffusionConfig(**data["diffusion"]),
