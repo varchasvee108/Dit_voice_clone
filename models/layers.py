@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import math
+from core.config import Config
 
 
 class SinusoidalEmbeddings(nn.Module):
@@ -43,3 +44,31 @@ def rotate_half(x):
 
 def apply_rotary_pos_emb(q, k, cos, sin):
     return (q * cos) + (rotate_half(q) * sin), (k * cos) + (rotate_half(k) * sin)
+
+
+class TransformerBlock(nn.Module):
+    def __init__(self, config: Config):
+        super().__init__()
+        self.config = config
+        self.ln1 = nn.LayerNorm(config.data.embd_dim)
+        self.ln2 = nn.LayerNorm(config.data.embd_dim)
+        self.attn = nn.MultiheadAttention(
+            embed_dim=config.data.embd_dim,
+            num_heads=config.model.num_heads,
+            dropout=config.model.dropout,
+            batch_first=True,
+        )
+        self.mlp = nn.Sequential(
+            nn.Linear(config.data.embd_dim, config.model.hidden_dim),
+            nn.GELU(),
+            nn.Linear(config.model.hidden_dim, config.data.embd_dim),
+            nn.Dropout(config.model.dropout),
+        )
+
+    def forward(self, x):
+        x_norm = self.ln1(x)
+
+        attn, _ = self.attn(x_norm, x_norm, x_norm)
+        x = x + attn
+        x = x + self.mlp(self.ln2(x))
+        return x
