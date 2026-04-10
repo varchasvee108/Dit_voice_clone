@@ -27,17 +27,17 @@ class DiffusionTransformer(nn.Module):
         )
 
         self.blocks = nn.ModuleList(
-            [TransformerBlock(config)] for _ in range(config.model.num_layers)
+            [TransformerBlock(config) for _ in range(config.model.num_layers)]
         )
 
-        self.ln_f = nn.LayerNorm(config.model.hidden_dim)
-        self.out_proj = nn.Linear(config.model.hidden_dim, config.model.hidden_dim)
+        self.ln_f = nn.LayerNorm(config.data.embd_dim)
+        self.out_proj = nn.Linear(config.data.embd_dim, config.data.embd_dim)
 
-        self.lm_head = nn.Linear(
-            config.model.hidden_dim, config.data.vocab_size, bias=False
-        )
+        # self.lm_head = nn.Linear(
+        #     config.data.embd_dim, config.data.vocab_size, bias=False
+        # )
 
-        self.lm_head.weight = self.tok_embeddings.weight
+        # self.lm_head.weight = self.tok_embeddings.weight
 
     def forward(self, x, t):
         if x.dtype == torch.long:
