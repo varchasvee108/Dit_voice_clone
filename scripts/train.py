@@ -20,9 +20,7 @@ def parse_args():
         "--config", type=str, default="configs/default.yaml", help="Path to config file"
     )
     parser.add_argument("--lr", type=float, default=3e-4, help="Learning rate")
-    parser.add_argument(
-        "--save_every", type=int, default=500, help="Save checkpoint every N steps"
-    )
+
     parser.add_argument(
         "--eval_every", type=int, default=500, help="Evaluate model every N steps"
     )
