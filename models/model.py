@@ -3,9 +3,7 @@ import torch.nn as nn
 from core.config import Config
 from models.layers import (
     SinusoidalEmbeddings,
-    RotaryEmbedding,
     TransformerBlock,
-    apply_rotary_pos_emb,
 )
 
 
@@ -50,10 +48,8 @@ class DiffusionTransformer(nn.Module):
         t_emb = self.time_embd(t)
         t_emb = t_emb.unsqueeze(1)
 
-        x = x + t_emb
-
         for block in self.blocks:
-            x = block(x)
+            x = block(x, t_emb)
 
         x = self.ln_f(x)
         return self.out_proj(x)
