@@ -20,7 +20,7 @@ class DiffusionModel:
         return torch.randint(
             0,
             self.config.diffusion.timesteps,
-            size=(self.config.data.batch_size,),
+            size=(batch_size,),
             device=self.device,
         )
 
