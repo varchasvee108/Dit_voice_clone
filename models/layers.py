@@ -65,7 +65,10 @@ class TransformerBlock(nn.Module):
             nn.Dropout(config.model.dropout),
         )
 
-    def forward(self, x):
+    def forward(self, x, t_emb=None):
+
+        if t_emb is not None:
+            x = x + t_emb
         x_norm = self.ln1(x)
 
         attn, _ = self.attn(x_norm, x_norm, x_norm)
