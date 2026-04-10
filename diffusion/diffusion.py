@@ -1,5 +1,6 @@
 import torch
 from core.config import Config
+from tqdm import tqdm
 
 
 class DiffusionModel:
@@ -45,11 +46,17 @@ class DiffusionModel:
         mask = (t > 0).float().view(-1, 1, 1)
         return mean + mask * torch.sqrt(beta) * noise
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def sample(self, model, shape):
+        model.eval()
         x = torch.randn(shape, device=self.device)
+        pbar = tqdm(
+            reversed(range(self.config.diffusion.timesteps)),
+            desc="Sampling",
+            total=self.config.diffusion.timesteps,
+        )
 
-        for t in reversed(range(self.config.diffusion.timesteps)):
+        for t in pbar:
             t_batch = torch.full((shape[0],), t, device=self.device, dtype=torch.long)
             x = self.p_sample(model, x, t_batch)
         return x
