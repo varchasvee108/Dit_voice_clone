@@ -60,7 +60,7 @@ def evaluate(model, dataloader, diffusion, device):
         for x in dataloader:
             x = x.to(device)
             if x.dtype == torch.long:
-                x = model.token_emb(x)
+                x = model.token_embeddings(x)
             t = diffusion.sample_timesteps(x.shape[0], device)
             noise = torch.randn_like(x)
             x_t = diffusion.q_sample(x, t, noise)
@@ -79,11 +79,12 @@ def train():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     os.makedirs("checkpoint", exist_ok=True)
+    train_dataloader, val_dataloader = get_dataloader(config)
+    config.data.vocab_size = train_dataloader.dataset.tokenizer.vocab_size
     model = DiffusionTransformer(config).to(device)
     diffusion = DiffusionModel(config, device)
 
     optimizer, scheduler, scaler = get_optimizer_and_scheduler(model, config, device)
-    train_dataloader, val_dataloader = get_dataloader(config)
     train_iter = iter(train_dataloader)
     best_loss = float("inf")
 
