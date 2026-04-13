@@ -12,12 +12,13 @@ from torch.optim import AdamW
 from data.dataloader import get_dataloader
 import torch.nn.functional as F
 from torch.amp import autocast, GradScaler
+import tomllib
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a text diffusion model")
     parser.add_argument(
-        "--config", type=str, default="configs/config.toml", help="Path to config file"
+        "--config", type=str, default="config/config.toml", help="Path to config file"
     )
     parser.add_argument("--lr", type=float, default=3e-4, help="Learning rate")
 
@@ -80,13 +81,16 @@ def evaluate(model, dataloader, diffusion, device):
 def train():
     args = parse_args()
     config: Config = Config.load_config(args.config)
-    wandb.init(project="Text-Diffusion", config=config.to_dict())
+
+    train_dataloader, val_dataloader = get_dataloader(config)
+    config.data.vocab_size = train_dataloader.dataset.tokenizer.vocab_size
+    with open(args.config, "rb") as f:
+        config_dict = tomllib.load(f)
+    wandb.init(project="Text-Diffusion", config=config_dict)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     os.makedirs("checkpoints", exist_ok=True)
-    train_dataloader, val_dataloader = get_dataloader(config)
-    config.data.vocab_size = train_dataloader.dataset.tokenizer.vocab_size
     model = DiffusionTransformer(config).to(device)
     diffusion = DiffusionModel(config, device)
 
@@ -132,7 +136,7 @@ def train():
         noise = torch.randn_like(x)
         x_t = diffusion.q_sample(x, t, noise)
 
-        with autocast():
+        with autocast(device_type="cuda", enabled=device.type == "cuda"):
             pred_noise = model(x_t, t)
             loss = F.mse_loss(pred_noise, noise)
 
