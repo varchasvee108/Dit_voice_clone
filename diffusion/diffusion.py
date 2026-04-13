@@ -38,9 +38,9 @@ class DiffusionModel:
         alpha_hat = self.alpha_cumprod[t].view(-1, 1, 1)
         noise_pred = model(x, t)
 
-        mean = (1 / torch.sqrt(alpha)) * x - (
-            (1 - alpha) / torch.sqrt(1 - alpha_hat)
-        ) * noise_pred
+        mean = (1 / torch.sqrt(alpha)) * (
+            x - ((1 - alpha) / torch.sqrt(1 - alpha_hat)) * noise_pred
+        )
 
         noise = torch.randn_like(x)
         mask = (t > 0).float().view(-1, 1, 1)
