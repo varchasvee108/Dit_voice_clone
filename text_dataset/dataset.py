@@ -13,10 +13,14 @@ class TextDataset(Dataset):
         self.config = config
         self.block = config.data.block_size
         self.tokenizer = AutoTokenizer.from_pretrained(config.data.tokenizer)
+
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+
         dataset = load_dataset(config.data.dataset, split=split)
 
         def tokenize_fn(example):
-            return config.data.tokenizer(example["text"])
+            return self.tokenizer(example["text"])
 
         tokenized_dataset = dataset.map(
             tokenize_fn=tokenize_fn,
