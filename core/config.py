@@ -15,8 +15,8 @@ class DataConfig:
     block_size: int
     batch_size: int
     tokenizer: str
-    vocab_size: int | None = None
     embd_dim: int
+    vocab_size: int | None = None
 
 
 @dataclass
@@ -33,7 +33,7 @@ class TrainingConfig:
     lr: float
     max_steps: int
     warmup_steps: int
-    betas: list[float]
+    betas: tuple[float]
     weight_decay: float
     grad_clip: float
     eval_interval: int
