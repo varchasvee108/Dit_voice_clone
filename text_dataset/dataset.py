@@ -3,6 +3,7 @@ from core.config import Config
 from torch.utils.data import Dataset
 from itertools import chain
 import torch
+from transformers import AutoTokenizer
 
 
 class TextDataset(Dataset):
@@ -11,6 +12,7 @@ class TextDataset(Dataset):
         super().__init__()
         self.config = config
         self.block = config.data.block_size
+        self.tokenizer = AutoTokenizer.from_pretrained(config.data.tokenizer)
         dataset = load_dataset(config.data.dataset, split=split)
 
         def tokenize_fn(example):
