@@ -5,7 +5,7 @@ from models.model import DiffusionTransformer
 from torch.cuda.amp import GradScaler, autocast
 from transformers import get_scheduler
 from tqdm import tqdm
-from diffusion.diffusion import Diffusion
+from diffusion.diffusion import DiffusionModel
 import wandb
 import os
 import argparse
@@ -42,12 +42,12 @@ def save_checkpoint(model, optimizer, scaler, scheduler, step, loss, path):
 
 
 def get_optimizer_and_scheduler(model, config, device):
-    optimizer = AdamW(model.parameters(), lr=config.training.learning_rate)
+    optimizer = AdamW(model.parameters(), lr=config.training.lr)
     scheduler = get_scheduler(
         name=config.training.scheduler,
         optimizer=optimizer,
         num_warmup_steps=config.training.num_warmup_steps,
-        num_training_steps=config.training.num_training_steps,
+        num_training_steps=config.training.max_steps,
     )
     scaler = GradScaler()
     return optimizer, scheduler, scaler
@@ -80,7 +80,7 @@ def train():
 
     os.makedirs("checkpoint", exist_ok=True)
     model = DiffusionTransformer(config).to(device)
-    diffusion = Diffusion(config, device)
+    diffusion = DiffusionModel(config, device)
 
     optimizer, scheduler, scaler = get_optimizer_and_scheduler(model, config, device)
     train_dataloader, val_dataloader = get_dataloader(config)
@@ -119,7 +119,7 @@ def train():
         x = x.to(device)
 
         if x.dtype == torch.long:
-            x = model.token_emb(x)
+            x = model.tok_embeddings(x)
 
         t = diffusion.sample_timesteps(x.shape[0], device)
         noise = torch.randn_like(x)
