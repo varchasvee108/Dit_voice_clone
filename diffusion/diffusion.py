@@ -47,7 +47,7 @@ class DiffusionModel:
         return mean + mask * torch.sqrt(beta * temp) * noise
 
     @torch.inference_mode()
-    def sample(self, model, shape):
+    def sample(self, model, shape, temp=1.0):
         model.eval()
         x = torch.randn(shape, device=self.device)
         pbar = tqdm(
@@ -58,5 +58,5 @@ class DiffusionModel:
 
         for t in pbar:
             t_batch = torch.full((shape[0],), t, device=self.device, dtype=torch.long)
-            x = self.p_sample(model, x, t_batch)
+            x = self.p_sample(model, x, t_batch, temp=temp)
         return x
