@@ -18,7 +18,7 @@ class DiffusionTransformer(nn.Module):
         )
 
         self.time_embd = nn.Sequential(
-            SinusoidalEmbeddings(config.data.embd_dim),
+            SinusoidalEmbeddings(config.model.time_embed),
             nn.Linear(config.model.time_embed, config.model.hidden_dim),
             nn.GELU(),
             nn.Linear(config.model.hidden_dim, config.data.embd_dim),
