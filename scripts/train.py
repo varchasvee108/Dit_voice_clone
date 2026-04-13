@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from core.config import Config
 from models.model import DiffusionTransformer
-from torch.cuda.amp import GradScaler, autocast
 from transformers import get_scheduler
 from tqdm import tqdm
 from diffusion.diffusion import DiffusionModel
@@ -12,18 +11,20 @@ import argparse
 from torch.optim import AdamW
 from data.dataloader import get_dataloader
 import torch.nn.functional as F
+from torch.amp import autocast, GradScaler
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a text diffusion model")
     parser.add_argument(
-        "--config", type=str, default="configs/default.yaml", help="Path to config file"
+        "--config", type=str, default="configs/config.toml", help="Path to config file"
     )
     parser.add_argument("--lr", type=float, default=3e-4, help="Learning rate")
 
     parser.add_argument(
         "--eval_every", type=int, default=500, help="Evaluate model every N steps"
     )
+    parser.add_argument("--resume", action="store_true")
 
     return parser.parse_args()
 
@@ -42,14 +43,19 @@ def save_checkpoint(model, optimizer, scaler, scheduler, step, loss, path):
 
 
 def get_optimizer_and_scheduler(model, config, device):
-    optimizer = AdamW(model.parameters(), lr=config.training.lr)
+    optimizer = AdamW(
+        model.parameters(),
+        lr=config.training.lr,
+        betas=config.training.betas,
+        weight_decay=config.training.weight_decay,
+    )
     scheduler = get_scheduler(
         name=config.training.scheduler,
         optimizer=optimizer,
-        num_warmup_steps=config.training.num_warmup_steps,
+        num_warmup_steps=config.training.warmup_steps,
         num_training_steps=config.training.max_steps,
     )
-    scaler = GradScaler()
+    scaler = GradScaler(enabled=torch.cuda.is_available())
     return optimizer, scheduler, scaler
 
 
@@ -60,7 +66,7 @@ def evaluate(model, dataloader, diffusion, device):
         for x in dataloader:
             x = x.to(device)
             if x.dtype == torch.long:
-                x = model.token_embeddings(x)
+                x = model.tok_embeddings(x)
             t = diffusion.sample_timesteps(x.shape[0], device)
             noise = torch.randn_like(x)
             x_t = diffusion.q_sample(x, t, noise)
@@ -73,12 +79,12 @@ def evaluate(model, dataloader, diffusion, device):
 
 def train():
     args = parse_args()
-    config: Config = Config(args.config)
+    config: Config = Config.load_config(args.config)
     wandb.init(project="Text-Diffusion", config=config.to_dict())
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    os.makedirs("checkpoint", exist_ok=True)
+    os.makedirs("checkpoints", exist_ok=True)
     train_dataloader, val_dataloader = get_dataloader(config)
     config.data.vocab_size = train_dataloader.dataset.tokenizer.vocab_size
     model = DiffusionTransformer(config).to(device)
@@ -122,7 +128,7 @@ def train():
         if x.dtype == torch.long:
             x = model.tok_embeddings(x)
 
-        t = diffusion.sample_timesteps(x.shape[0], device)
+        t = diffusion.sample_timesteps(x.shape[0])
         noise = torch.randn_like(x)
         x_t = diffusion.q_sample(x, t, noise)
 
