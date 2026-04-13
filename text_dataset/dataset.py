@@ -38,6 +38,6 @@ class TextDataset(Dataset):
 
     def __getitem__(self, idx):
         start = idx * self.config.data.block_size
-        end = start + self.config.data.block_size + 1
+        end = start + self.config.data.block_size
         chunk = self.tokens[start:end]
         return chunk
