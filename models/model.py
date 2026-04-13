@@ -41,7 +41,7 @@ class DiffusionTransformer(nn.Module):
         if x.dtype == torch.long:
             x = self.tok_embeddings(x)
 
-        B, T, _ = x.shape
+        B, T, C = x.shape
 
         x = x + self.pos_embd[:, :T, :]
 
