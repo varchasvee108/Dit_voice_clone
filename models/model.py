@@ -38,8 +38,6 @@ class DiffusionTransformer(nn.Module):
         # self.lm_head.weight = self.tok_embeddings.weight
 
     def forward(self, x, t):
-        if x.dtype == torch.long:
-            x = self.tok_embeddings(x)
 
         B, T, C = x.shape
 
