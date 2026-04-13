@@ -34,7 +34,7 @@ class TextDataset(Dataset):
         self.tokens = torch.tensor(all_tokens, dtype=torch.long)
 
     def __len__(self):
-        return (len(self.tokens) - 1) // self.config.data.block_size
+        return (len(self.tokens)) // self.config.data.block_size
 
     def __getitem__(self, idx):
         start = idx * self.config.data.block_size
