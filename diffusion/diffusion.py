@@ -31,7 +31,7 @@ class DiffusionModel:
 
         return sqrt_alpha_hat * x0 + sqrt_one_minus * noise
 
-    def p_sample(self, model, x, t):
+    def p_sample(self, model, x, t, temp=1.0):
 
         beta = self.betas[t].view(-1, 1, 1)
         alpha = self.alphas[t].view(-1, 1, 1)
@@ -44,7 +44,7 @@ class DiffusionModel:
 
         noise = torch.randn_like(x)
         mask = (t > 0).float().view(-1, 1, 1)
-        return mean + mask * torch.sqrt(beta) * noise
+        return mean + mask * torch.sqrt(beta * temp) * noise
 
     @torch.inference_mode()
     def sample(self, model, shape):
